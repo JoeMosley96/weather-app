@@ -1,0 +1,1 @@
+export type Alert = { id: string; properties: { event: string; severity: string; areaDesc: string; effective: string; ends: string } }
