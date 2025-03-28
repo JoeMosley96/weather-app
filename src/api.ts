@@ -35,7 +35,7 @@ export function sortAlerts(
 
   if (sortCategory === "Severity") {
     alerts.forEach(alert => {
-      alert.properties.Severity = severityLookup[alert.properties.severity] || 0;
+      alert.properties.Severity = (severityLookup[alert.properties.severity] || 0).toString();
     });
   }
 
