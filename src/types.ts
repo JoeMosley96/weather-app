@@ -1,7 +1,13 @@
-export type Alert = { id: string; properties: { event: string; severity: string; areaDesc: string; effective: string; ends: string } }
+export type Alert = { properties: { [key: string]: unknown; severity: string; }; id?: string }
+
+export type AlertWithSeverity = { properties: { [key: string]: unknown; severity: string; Severity: string}; id?: string }
 
 export type Filters  = {
-    time: string | null;
     state: string
     regions: string[] | [];
+}
+
+export type SortValue = {
+    sortBy: string;
+    isDescending: boolean
 }

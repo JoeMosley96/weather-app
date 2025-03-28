@@ -2,8 +2,7 @@ import React from "react";
 import CreatableSelect from "react-select/creatable";
 import { Filters } from "../types.ts";
 
-
-//boilerplate code for region selection box
+//Boilerplate code for CreatableSelect component
 const components = {
   DropdownIndicator: null,
 };
@@ -20,22 +19,29 @@ const createOption = (label: string) => ({
 
 export default function FilterDialog({
   setFilters,
-    states
+  states,
 }: {
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   states: Record<string, string>;
 }) {
-
-  const [selectedTime, setSelectedTime] = React.useState<string | null>("Upcoming");
-  const [selectedState, setSelectedState] = React.useState<string>("");
+  const [selectedState, setSelectedState] = React.useState<string>(() => {
+    //initialise selectedState as an empty string - if it is the first time loading the modal. if not, pull in the state from local storage
+    const savedState = localStorage.getItem("selectedState");
+    return savedState || "Choose state from list below";
+  });
   const [regionInputValue, setRegionInputValue] = React.useState("");
-  const [selectedRegions, setSelectedRegions] = React.useState<readonly Option[]>([]);
+  const [selectedRegions, setSelectedRegions] = React.useState<
+    readonly Option[]
+  >(() => {
+    //initialise selectedRegions as an empty array - if it is the first time loading the modal. if not, pull in the regions from local storage
+    const savedRegions = localStorage.getItem("selectedRegions");
+    return JSON.parse(savedRegions || "[]") || [];
+  });
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     // Pass the selections back to the parent component
     setFilters({
-      time: selectedTime,
       state: selectedState,
       regions: selectedRegions.map((option) => option.value),
     });
@@ -43,53 +49,36 @@ export default function FilterDialog({
     (document.getElementById("filterDialog") as HTMLDialogElement)?.close();
   };
 
+  // Pass selected state to local storage when it changes - so that settings are still visible when modal is reloaded
+  React.useEffect(() => {
+    localStorage.setItem("selectedState", selectedState);
+  }, [selectedState]);
+
+  // Pass selected regions to local storage when they are changed - so that settings are still visible when modal is reloaded
+  React.useEffect(() => {
+    localStorage.setItem("selectedRegions", JSON.stringify(selectedRegions));
+  }, [selectedRegions]);
 
   return (
     <dialog id="filterDialog" className="modal modal-bottom sm:modal-middle">
       <div className="modal-box">
         <h3 className="font-bold text-lg">Filters</h3>
         <div className="modal-action border-t-2 mt-3 pt-3">
+          <button
+            onClick={() => {
+              (
+                document.getElementById("filterDialog") as HTMLDialogElement
+              )?.close();
+            }}
+            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+          >
+            ✕
+          </button>
           <form className="w-full" onSubmit={handleSubmit}>
-            <button
-              onClick={() => {
-                (
-                  document.getElementById("filterDialog") as HTMLDialogElement
-                )?.close();
-              }}
-              className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            >
-              ✕
-            </button>
-            <div className="mb-2">
-              <h1>Time</h1>
-              <input
-                type="radio"
-                className="radio bg-gray-100"
-                id="upcoming"
-                name="filter_preference"
-                value="Upcoming"
-                defaultChecked
-                onChange={(e) => setSelectedTime(e.target.value)}
-              />
-              <label className="ml-2" htmlFor="upcoming">
-                Upcoming
-              </label>
-              <input
-                type="radio"
-                className="radio bg-gray-100"
-                id="past"
-                name="filter_preference"
-                value="Past"
-                onChange={(e) => setSelectedTime(e.target.value)}
-              />
-              <label className="ml-2" htmlFor="past">
-                Past
-              </label>
-            </div>
             <div className="mb-2">
               <h1>State</h1>
               <select
-                  defaultValue={selectedState || "Choose state from list below"}
+                defaultValue={selectedState || "Choose state from list below"}
                 onChange={(e) => setSelectedState(e.target.value)}
                 className="select w-[320px]"
               >
@@ -101,27 +90,30 @@ export default function FilterDialog({
             </div>
             <h1>Region(s)</h1>
             <CreatableSelect
-                styles={{
-                  control: (base, state) => ({
-                    ...base,
-                    borderColor: state.isFocused ? "black" : "#d3d3d3",
-                    borderWidth: "1px",
-                    borderStyle: "solid",
-                    boxShadow: state.isFocused ? "0 0 0 2px white, 0 0 0 3px black" : "none",
-                    "&:hover": {
-                      borderColor: state.isFocused ? "black" : "grey",
-                    },
-                  }),
-                  placeholder: (base) => ({
-                    ...base,
-                    marginLeft: "8px",
-                    fontSize: "14px",
-                  }),
-                  input: (base) => ({
-                    ...base,
-                    marginLeft: "8px",
-                  }),
-                }}
+              styles={{
+                //styles CreatableSelect to match the dropdown box
+                control: (base, state) => ({
+                  ...base,
+                  borderColor: state.isFocused ? "black" : "#d3d3d3",
+                  borderWidth: "1px",
+                  borderStyle: "solid",
+                  boxShadow: state.isFocused
+                    ? "0 0 0 2px white, 0 0 0 3px black"
+                    : "none",
+                  "&:hover": {
+                    borderColor: state.isFocused ? "black" : "grey",
+                  },
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  marginLeft: "8px",
+                  fontSize: "14px",
+                }),
+                input: (base) => ({
+                  ...base,
+                  marginLeft: "8px",
+                }),
+              }}
               className="w-[320px]"
               components={components}
               inputValue={regionInputValue}
@@ -135,7 +127,10 @@ export default function FilterDialog({
                 switch (event.key) {
                   case "Enter":
                   case "Tab":
-                    setSelectedRegions((prev) => [...prev, createOption(regionInputValue)]);
+                    setSelectedRegions((prev) => [
+                      ...prev,
+                      createOption(regionInputValue),
+                    ]);
                     setRegionInputValue("");
                     event.preventDefault();
                 }
