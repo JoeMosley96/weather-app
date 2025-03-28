@@ -1,3 +1,4 @@
+
 export const formatTimestamp = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleString(undefined, {
@@ -9,3 +10,4 @@ export const formatTimestamp = (isoString: string) => {
         timeZoneName: "short", // Adds timezone info
     });
 };
+
