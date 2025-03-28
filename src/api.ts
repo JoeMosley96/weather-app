@@ -5,15 +5,7 @@ const api = axios.create({
   baseURL: "https://api.weather.gov",
 });
 
-import {Alert} from "./types.ts";
-
-type AlertsData = {
-  "@context": unknown;
-  features: Alert[];
-  title: string;
-  type: string;
-  updated: string;
-};
+import {AlertsData} from "./types.ts";
 
 export async function getAlerts(state: string | undefined, regions: string[]): Promise<AlertsData | undefined> {
   try {
@@ -26,7 +18,6 @@ export async function getAlerts(state: string | undefined, regions: string[]): P
           )
       );
     }
-
     return data;
   } catch (err) {
     console.error(err);
